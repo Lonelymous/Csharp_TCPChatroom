@@ -10,7 +10,7 @@ namespace CLIServer
     internal class Program
     {
         static readonly object _lock = new object();
-        static readonly Dictionary<int, TcpClient> list_clients = new Dictionary<int, TcpClient>();
+        static readonly Dictionary<int, TcpClient> Clients = new Dictionary<int, TcpClient>();
 
         static void Main(string[] args)
         {
@@ -22,21 +22,21 @@ namespace CLIServer
             while (true)
             {
                 TcpClient client = ServerSocket.AcceptTcpClient();
-                lock (_lock) list_clients.Add(count, client);
+                lock (_lock) Clients.Add(count, client);
                 Console.WriteLine($"{client.Client.RemoteEndPoint} connected to the server.");
 
-                Thread t = new Thread(handle_clients);
+                Thread t = new Thread(HandleClients);
                 t.Start(count);
                 count++;
             }
         }
 
-        public static void handle_clients(object o)
+        public static void HandleClients(object _object)
         {
-            int id = (int)o;
+            int id = (int)_object;
             TcpClient client;
 
-            lock (_lock) client = list_clients[id];
+            lock (_lock) client = Clients[id];
 
             while (true)
             {
@@ -50,22 +50,22 @@ namespace CLIServer
                 }
 
                 string data = Encoding.ASCII.GetString(buffer, 0, byte_count);
-                broadcast(data);
+                Broadcasr(data);
                 Console.WriteLine(data);
             }
 
-            lock (_lock) list_clients.Remove(id);
+            lock (_lock) Clients.Remove(id);
             client.Client.Shutdown(SocketShutdown.Both);
             client.Close();
         }
 
-        public static void broadcast(string data)
+        public static void Broadcasr(string data)
         {
             byte[] buffer = Encoding.ASCII.GetBytes(data + Environment.NewLine);
 
             lock (_lock)
             {
-                foreach (TcpClient c in list_clients.Values)
+                foreach (TcpClient c in Clients.Values)
                 {
                     NetworkStream stream = c.GetStream();
 

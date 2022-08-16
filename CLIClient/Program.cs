@@ -12,16 +12,19 @@ namespace CLIClient
         {
             IPAddress ip = IPAddress.Parse("127.0.0.1");
             int port = 5000;
+
             TcpClient client = new TcpClient();
             client.Connect(ip, port);
+            
             Console.WriteLine($"Connected to the server ({ip}:{port})");
+            
             NetworkStream ns = client.GetStream();
-            Thread thread = new Thread(o => ReceiveData((TcpClient)o));
+            Thread thread = new Thread(_object => ReceiveData((TcpClient)_object));
 
             thread.Start(client);
 
             string s;
-            while (!string.IsNullOrEmpty((s = Console.ReadLine())))
+            while (!string.IsNullOrEmpty(s = Console.ReadLine()))
             {
                 byte[] buffer = Encoding.ASCII.GetBytes(s);
                 ns.Write(buffer, 0, buffer.Length);
